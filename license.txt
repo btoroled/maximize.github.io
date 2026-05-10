@@ -1,0 +1,6 @@
+Copyright (c) 2026 Benjamin Toro Leddihn
+Todos los derechos reservados.
+
+Este software y su contenido son propiedad privada de Benjamin Toro Leddihn.
+Queda prohibida su reproducción, distribución, modificación o uso
+sin autorización expresa y por escrito del titular.
