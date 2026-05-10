@@ -10,36 +10,42 @@
 
 const DECKS = [
   {
-    id: "mazo1",
-    name: "Pixel",
-    back: "assets/backs/back1.jpg",
-    color: "#7C6A8E",
-    cards: Array.from({ length: 60 }, (_, i) => ({
-      id: `m1-${i + 1}`,
-      src: `assets/cards/mazo1/card${i + 1}.jpg`,
-      alt: `Carta ${i + 1} de Pixel`,
-    })),
-  },
-  {
-    id: "mazo2",
+    id: "alma",
     name: "Alma",
-    back: "assets/backs/back2.jpg",
-    color: "#6A8E7C",
-    cards: Array.from({ length: 60 }, (_, i) => ({
-      id: `m2-${i + 1}`,
-      src: `assets/cards/mazo2/card${i + 1}.jpg`,
-      alt: `Carta ${i + 1} del Alma`,
-    })),
+    back: "assets/backs/alma_00_f.jpg",
+    color: "#7C6A8E",
+    cards: Array.from({ length: 120 }, (_, i) => {
+      const num = String(i + 1).padStart(2, "0");
+      return {
+        id: `alma-${num}`,
+        src: `assets/cards/alma/fotos/alma_${num}.jpg`,
+        alt: `Alma ${num}`,
+      };
+    }),
   },
   {
-    id: "mazo3",
+    id: "dreams",
     name: "Dreams",
-    back: "assets/backs/back3.jpg",
+    back: "assets/backs/dreams_0.jpg",
+    color: "#6A8E7C",
+    cards: Array.from({ length: 101 }, (_, i) => {
+      const num = String(i + 1).padStart(2, "0");
+      return {
+        id: `dreams-${num}`,
+        src: `assets/cards/dreams/dreams_${num}.png`,
+        alt: `Dreams ${num}`,
+      };
+    }),
+  },
+  {
+    id: "pixel",
+    name: "Pixel",
+    back: "assets/backs/pixel_0.jpg",
     color: "#8E7C6A",
-    cards: Array.from({ length: 60 }, (_, i) => ({
-      id: `m3-${i + 1}`,
-      src: `assets/cards/mazo3/card${i + 1}.jpg`,
-      alt: `Carta ${i + 1} del Dreams`,
+    cards: Array.from({ length: 113 }, (_, i) => ({
+      id: `pixel-${i + 1}`,
+      src: `assets/cards/pixel/fotos/pixel_${i + 1}.jpg`,
+      alt: `Pixel ${i + 1}`,
     })),
   },
 ];
