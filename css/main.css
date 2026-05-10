@@ -156,43 +156,58 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
   margin-bottom: 10px;
 }
 
-/* ── Deck Selector ── */
-#deck-selector { display: flex; flex-direction: column; gap: 6px; }
+/* ── Deck Selector — dorsos grandes ── */
+#deck-selector {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  justify-content: center;
+}
 
 .deck-btn {
+  flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
+  gap: 6px;
+  padding: 0;
   border-radius: var(--radius-sm);
-  border: 1.5px solid var(--border);
-  background: var(--surface2);
-  color: var(--text);
-  font-size: 0.85rem;
+  border: 2.5px solid transparent;
+  background: transparent;
+  cursor: pointer;
   transition: all 0.2s ease;
-  text-align: left;
 }
 
-.deck-btn:hover { border-color: var(--accent); background: var(--accent-light); }
-.deck-btn.active {
-  border-color: var(--accent);
-  background: var(--accent-light);
-  font-weight: 500;
-  box-shadow: inset 3px 0 0 var(--accent);
+.deck-btn:hover .deck-back-preview {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  transform: translateY(-2px);
 }
+
+.deck-btn.active .deck-back-preview {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent), 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.deck-btn.active .deck-label { color: var(--accent); font-weight: 500; }
 
 .deck-back-preview {
-  /* Ratio horizontal para el preview del dorso */
-  width: 48px;
-  height: 37px;
-  border-radius: 4px;
+  width: 100%;
+  aspect-ratio: 1980 / 1535;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--bg2);
-  flex-shrink: 0;
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
+  transition: all 0.2s ease;
 }
 
 .deck-back-preview img { width: 100%; height: 100%; object-fit: cover; }
+
+.deck-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-align: center;
+  transition: color 0.2s;
+}
 
 /* ── Mode Selector ── */
 .mode-toggle {
@@ -273,7 +288,7 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
 }
 
 .custom-inputs input[type="text"] { width: 100%; margin-top: 2px; }
-.custom-inputs .custom-name-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+.custom-inputs .custom-name-row { flex-direction: column; align-items: center; gap: 4px; }
 
 .custom-btn-row { display: flex; gap: 6px; margin-top: 4px; }
 
@@ -329,21 +344,42 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
 /* ── Board Area ── */
 #board-area {
   flex: 1;
-  padding: 24px;
+  padding: 20px;
   overflow: auto;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
+  /* Necesario para que el hijo pueda calcular su altura correctamente */
+  min-height: 0;
 }
 
 /* ── Card Grid ── */
+/*
+  Estrategia: el tablero debe caber en la pantalla sin scroll.
+  Las cartas son horizontales (ratio ~1.29:1).
+  Usamos una variable CSS --cols y --rows seteadas por JS
+  para calcular el tamaño máximo que cabe en el viewport disponible.
+
+  Limitamos por ANCHO: cada col no puede superar (ancho_disponible / cols)
+  Limitamos por ALTO:  cada fila (col_ancho / 1.29) * rows <= alto_disponible
+  El CSS no puede hacer ambos cálculos juntos, así que usamos
+  max-width + max-height en el board y dejamos que las celdas
+  con aspect-ratio se ajusten solas via 1fr.
+*/
 #board {
   display: grid;
   grid-template-columns: repeat(var(--cols, 3), 1fr);
-  gap: clamp(4px, 0.8vw, 10px);
+  gap: clamp(3px, 0.6vw, 10px);
+  /* Ancho: ocupa el espacio pero no más del disponible */
   width: 100%;
-  /* Max-width basado en ratio horizontal: cada carta ~180px de ancho */
-  max-width: min(95vw, calc(var(--cols, 3) * 200px + (var(--cols, 3) - 1) * 10px));
+  max-width: calc(
+    (min(
+      /* Límite por ancho del área */
+      (95vw - var(--sidebar-w, 280px)),
+      /* Límite por alto del área: alto_carta = ancho_carta / 1.29, total_alto = alto_carta * rows */
+      ((95vh - 40px) * 1.29 / var(--rows, 3) * var(--cols, 3))
+    ))
+  );
 }
 
 /* ── Card Cell — ratio 1980×1535 (horizontal) ── */
@@ -462,11 +498,16 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
 
 #card-selector-modal.is-open { opacity: 1; pointer-events: all; }
 
+/*
+  El panel ocupa casi toda la pantalla (96vw × 92vh).
+  El slider-body es flex:1 y tiene min-height:0 para que
+  las cartas se dimensionen según el alto real disponible.
+*/
 .modal-panel {
   background: var(--surface);
   border-radius: var(--radius);
-  width: min(960px, 96vw);
-  max-height: 90vh;
+  width: min(1100px, 96vw);
+  height: 92vh;
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-lg);
@@ -480,7 +521,7 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
 }
 
 .modal-header {
-  padding: 16px 20px;
+  padding: 14px 20px;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -522,25 +563,26 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px 16px;
-  gap: 16px;
-  min-height: 0;
+  padding: 16px 12px;
+  gap: 12px;
+  min-height: 0;       /* clave para que flex calcule bien el alto */
   overflow: hidden;
 }
 
 .slider-nav {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: var(--surface2);
   border: 1.5px solid var(--border);
   color: var(--text);
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
   flex-shrink: 0;
+  align-self: center;
 }
 .slider-nav:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
 .slider-nav:disabled { opacity: 0.3; cursor: not-allowed; }
@@ -548,9 +590,11 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
 /* ── Slider track ── */
 .slider-track-wrap {
   flex: 1;
+  height: 100%;
   overflow: hidden;
   position: relative;
-  min-height: 0;
+  display: flex;
+  align-items: center;
 }
 
 .slider-track {
@@ -561,7 +605,12 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
   align-items: center;
 }
 
-/* ── Slider Card ── */
+/* ── Slider Card ──
+   La carta se dimensiona por ALTO: ocupa el alto disponible
+   del slider-body menos padding. El ancho sale del aspect-ratio.
+   Usamos height como base (la imagen es horizontal 1980×1535).
+   La carta central escala 1.06x, las laterales son más pequeñas.
+*/
 .slider-card {
   flex-shrink: 0;
   border-radius: var(--radius-sm);
@@ -569,15 +618,12 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
   cursor: pointer;
   position: relative;
   box-shadow: var(--shadow);
-  transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+  transition: transform 0.25s, box-shadow 0.25s, opacity 0.25s;
   background: var(--bg2);
-  /* Ratio horizontal correcto */
   aspect-ratio: 1980 / 1535;
-}
-
-/* Tamaño de cartas en el slider */
-.slider-card {
-  width: clamp(160px, 22vw, 260px);
+  /* Alto: usa el espacio disponible. Header ~52px, footer ~60px, padding ~32px */
+  height: clamp(120px, calc(92vh - 52px - 60px - 32px), 600px);
+  width: auto;
 }
 
 .slider-card:hover:not(.in-use) {
@@ -589,7 +635,7 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
 
 .slider-card.center-card {
   transform: scale(1.06);
-  box-shadow: 0 0 0 2px var(--accent), var(--shadow-lg);
+  box-shadow: 0 0 0 3px var(--accent), var(--shadow-lg);
   z-index: 2;
 }
 
@@ -612,16 +658,16 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
   right: 0;
   background: rgba(0,0,0,0.7);
   color: white;
-  font-size: 0.55rem;
+  font-size: 0.6rem;
   text-align: center;
-  padding: 4px;
+  padding: 5px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 
 /* ── Slider footer ── */
 .slider-footer {
-  padding: 14px 20px;
+  padding: 12px 20px;
   border-top: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -663,6 +709,230 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
 }
 .slider-select-btn:hover { filter: brightness(1.12); }
 .slider-select-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ════════════════════════════════════════
+   BUILD MODE — Armado del tablero
+════════════════════════════════════════ */
+
+/* Toolbar debajo del tablero */
+#build-toolbar {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 14px 20px;
+  flex-shrink: 0;
+}
+
+#build-toolbar.active { display: flex; }
+
+.build-toolbar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.build-toolbar-label {
+  font-size: 0.63rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Paleta de mazos arrastrables */
+#deck-palette {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex: 1;
+}
+
+#deck-palette.hidden { display: none; }
+
+.palette-deck {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  cursor: grab;
+  user-select: none;
+}
+
+.palette-deck img {
+  height: 80px;
+  aspect-ratio: 1980 / 1535;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--border);
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  pointer-events: none;
+}
+
+.palette-deck:hover img {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--accent);
+}
+
+.palette-deck.dragging img { opacity: 0.3; }
+
+.palette-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* Ghost de arrastre */
+.build-drag-ghost {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  opacity: 0.88;
+  height: 80px;
+  aspect-ratio: 1980 / 1535;
+  transform: rotate(2deg) scale(1.05);
+  transition: transform 0.1s;
+}
+
+.build-drag-ghost img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Drop target highlight */
+.card-cell.build-drop-target {
+  outline: 3px solid var(--accent);
+  outline-offset: -3px;
+  background: var(--accent-light);
+}
+
+/* Celda asignada en diseño */
+.build-assigned {
+  cursor: default;
+}
+
+.build-cell-inner {
+  width: 100%; height: 100%;
+  position: relative;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.build-dorso {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.build-cell-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 50%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 6px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.build-assigned:hover .build-cell-overlay { opacity: 1; }
+
+.build-deck-name {
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: white;
+  text-align: center;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.build-cell-controls {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+
+.cell-mode-btn {
+  padding: 3px 6px;
+  border-radius: 4px;
+  border: 1.5px solid rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.15);
+  color: white;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cell-mode-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.cell-mode-btn:hover:not(.active) { background: rgba(255,255,255,0.3); }
+
+.cell-remove-btn {
+  padding: 3px 6px;
+  border-radius: 4px;
+  border: 1.5px solid rgba(255,255,255,0.3);
+  background: rgba(180,50,50,0.5);
+  color: white;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cell-remove-btn:hover { background: rgba(180,50,50,0.85); }
+
+/* Celda vacía en modo build */
+.build-empty .empty-placeholder { color: var(--text-muted); }
+.build-drop-target .empty-placeholder { color: var(--accent); }
+
+.build-drop-icon { font-size: 1.4rem; }
+
+/* Botones de fase */
+.build-phase-btns { display: flex; gap: 8px; margin-left: auto; }
+
+#btn-build-play, #btn-build-design {
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+#btn-build-play {
+  background: var(--accent);
+  color: white;
+  border: none;
+}
+#btn-build-play:hover { filter: brightness(1.1); }
+
+#btn-build-design {
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
+  background: transparent;
+}
+#btn-build-design:hover { background: var(--accent-light); }
+
+.hidden { display: none !important; }
+
+/* Legend */
+.build-legend {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.legend-item { display: flex; align-items: center; gap: 4px; }
+
 
 /* ── Confirm Dialog ── */
 #confirm-dialog {
@@ -733,7 +1003,12 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
 body.is-fullscreen #sidebar { position: absolute; left: -100%; }
 body.is-fullscreen #board-area { padding: 12px; }
 body.is-fullscreen #board {
-  max-width: min(99vw, calc(var(--cols, 3) * 200px + (var(--cols, 3) - 1) * 10px));
+  max-width: calc(
+    (min(
+      99vw,
+      ((99vh - 24px) * 1.29 / var(--rows, 3) * var(--cols, 3))
+    ))
+  );
 }
 
 /* ── Responsive ── */
@@ -747,8 +1022,69 @@ body.is-fullscreen #board {
   #sidebar.open { transform: translateX(0); }
   #board-area { padding: 12px; }
 
-  .slider-card { width: clamp(120px, 40vw, 200px); }
-  .modal-panel { width: 100vw; max-height: 100vh; border-radius: 0; }
+  .modal-panel { width: 100vw; height: 100dvh; border-radius: 0; }
+  .slider-card { height: clamp(100px, calc(100dvh - 52px - 60px - 32px), 400px); }
+}
+
+/* ── Sidebar Collapse (desktop) ── */
+#sidebar-collapse {
+  position: fixed;
+  top: 12px;
+  left: calc(var(--sidebar-w) - 1px);
+  z-index: 20;
+  width: 22px;
+  height: 36px;
+  border-radius: 0 6px 6px 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: none;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.08);
+  transition: left 0.35s ease, background 0.2s, color 0.2s;
+}
+
+#sidebar-collapse:hover {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+/* When sidebar is collapsed */
+#app.sidebar-collapsed #sidebar {
+  width: 0;
+  overflow: hidden;
+  border-right: none;
+}
+
+#app.sidebar-collapsed #sidebar-collapse {
+  left: 0;
+  border-radius: 0 6px 6px 0;
+}
+
+/* Board max-width recalculation when collapsed */
+#app.sidebar-collapsed #board {
+  max-width: calc(
+    min(
+      95vw,
+      ((95vh - 40px) * 1.29 / var(--rows, 3) * var(--cols, 3))
+    )
+  );
+}
+
+/* Sidebar transition */
+#sidebar {
+  transition: width 0.35s ease, transform 0.3s ease, background 0.3s;
+}
+
+/* Protect images from being saved */
+img {
+  -webkit-user-drag: none;
+  user-drag: none;
+  pointer-events: auto;
 }
 
 /* ── Sidebar Toggle (mobile) ── */
@@ -769,4 +1105,5 @@ body.is-fullscreen #board {
 
 @media (max-width: 768px) {
   #sidebar-toggle { display: flex; }
+  #sidebar-collapse { display: none; }
 }
