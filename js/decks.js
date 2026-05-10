@@ -52,6 +52,7 @@ const DECKS = [
 
 // Presets predefinidos (filas x columnas)
 const PRESETS = [
+  { id: "2x2", label: "2×2", rows: 2, cols: 2 },
   { id: "3x1", label: "3×1", rows: 1, cols: 3 },
   { id: "3x2", label: "3×2", rows: 2, cols: 3 },
   { id: "3x3", label: "3×3", rows: 3, cols: 3 },

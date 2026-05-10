@@ -9,8 +9,8 @@
 </head>
 <body>
 
-  <!-- Mobile sidebar toggle -->
-  <button id="sidebar-toggle" title="Menú" aria-label="Abrir menú">☰</button>
+  <button id="sidebar-collapse" title="Ocultar panel" aria-label="Ocultar panel">‹</button>
+  <button id="sidebar-toggle"   title="Menú"          aria-label="Abrir menú">☰</button>
 
   <div id="app">
 
@@ -22,7 +22,7 @@
         <button id="btn-theme" title="Cambiar tema">🌙</button>
       </div>
 
-      <!-- Deck selector -->
+      <!-- Deck selector — dorsos grandes -->
       <div class="sidebar-section">
         <p class="section-label">Mazo</p>
         <div id="deck-selector"></div>
@@ -32,8 +32,9 @@
       <div class="sidebar-section">
         <p class="section-label">Modo de uso</p>
         <div class="mode-toggle">
-          <button data-mode="flip" class="active">🂠 Voltear</button>
-          <button data-mode="select">🔍 Seleccionar</button>
+          <button data-mode="flip"   class="active">🂠 Voltear</button>
+          <button data-mode="select">🔍 Elegir</button>
+          <button data-mode="build"> ✥ Armar</button>
         </div>
       </div>
 
@@ -41,22 +42,14 @@
       <div class="sidebar-section">
         <p class="section-label">Disposición</p>
         <div id="preset-selector">
-
-          <!-- Custom preset -->
           <details class="custom-preset-row">
             <summary>+ Personalizado</summary>
             <div class="custom-inputs">
-              <label>
-                Filas (1–9)
-                <input type="number" id="custom-rows" min="1" max="9" value="3" />
-              </label>
-              <label>
-                Columnas (1–9)
-                <input type="number" id="custom-cols" min="1" max="9" value="4" />
-              </label>
+              <label>Filas (1–9)<input type="number" id="custom-rows" min="1" max="9" value="3"/></label>
+              <label>Columnas (1–9)<input type="number" id="custom-cols" min="1" max="9" value="4"/></label>
               <label class="custom-name-row">
                 Nombre (para guardar)
-                <input type="text" id="custom-name" placeholder="Ej: Sesión individual" />
+                <input type="text" id="custom-name" placeholder="Ej: Sesión individual"/>
               </label>
               <div class="custom-btn-row">
                 <button id="custom-apply">Aplicar</button>
@@ -64,13 +57,12 @@
               </div>
             </div>
           </details>
-
         </div>
       </div>
 
       <!-- Action buttons -->
       <div class="action-buttons">
-        <button id="btn-reset" class="action-btn" title="Resetear tablero">↺ Reset</button>
+        <button id="btn-reset"      class="action-btn" title="Resetear tablero">↺ Reset</button>
         <button id="btn-fullscreen" class="action-btn" title="Pantalla completa">
           <span class="fs-icon">⛶</span> Pantalla
         </button>
@@ -80,17 +72,42 @@
 
     <!-- ═══ MAIN CONTENT ═══ -->
     <main id="main-content">
+
       <div id="board-area">
         <div id="board"></div>
       </div>
+
+      <!-- ═══ BUILD TOOLBAR (visible solo en modo Armar) ═══ -->
+      <div id="build-toolbar">
+
+        <div class="build-toolbar-row">
+          <span class="build-toolbar-label">Arrastra un mazo a cada celda</span>
+
+          <!-- Paleta de mazos -->
+          <div id="deck-palette"></div>
+
+          <!-- Leyenda -->
+          <div class="build-legend">
+            <div class="legend-item">🂠 <span>= voltear al click</span></div>
+            <div class="legend-item">🎲 <span>= carta random</span></div>
+          </div>
+
+          <!-- Botones de fase -->
+          <div class="build-phase-btns">
+            <button id="btn-build-play"   title="Empezar juego con este layout">▶ Jugar</button>
+            <button id="btn-build-design" class="hidden" title="Volver al diseño">← Diseño</button>
+          </div>
+        </div>
+
+      </div>
+
     </main>
 
   </div>
 
-  <!-- ═══ MODAL SLIDER: Modo Selección ═══ -->
+  <!-- ═══ MODAL SLIDER ═══ -->
   <div id="card-selector-modal" role="dialog" aria-modal="true" aria-label="Seleccionar carta">
     <div class="modal-panel">
-
       <div class="modal-header">
         <h2>Elegir carta</h2>
         <div class="modal-header-right">
@@ -98,24 +115,15 @@
           <button id="modal-close" aria-label="Cerrar">✕</button>
         </div>
       </div>
-
-      <!-- Slider -->
       <div class="slider-body">
         <button class="slider-nav prev" aria-label="Anterior">‹</button>
-
-        <div class="slider-track-wrap">
-          <div class="slider-track"></div>
-        </div>
-
+        <div class="slider-track-wrap"><div class="slider-track"></div></div>
         <button class="slider-nav next" aria-label="Siguiente">›</button>
       </div>
-
-      <!-- Footer con dots y botón seleccionar -->
       <div class="slider-footer">
         <div class="slider-dots"></div>
         <button class="slider-select-btn">Colocar carta</button>
       </div>
-
     </div>
   </div>
 
@@ -144,6 +152,37 @@
     // Mobile sidebar toggle
     document.getElementById("sidebar-toggle").addEventListener("click", () => {
       document.getElementById("sidebar").classList.toggle("open");
+    });
+
+    // Desktop sidebar collapse
+    const collapseBtn = document.getElementById("sidebar-collapse");
+    const appEl       = document.getElementById("app");
+    collapseBtn.addEventListener("click", () => {
+      const collapsed = appEl.classList.toggle("sidebar-collapsed");
+      collapseBtn.title     = collapsed ? "Mostrar panel" : "Ocultar panel";
+      collapseBtn.textContent = collapsed ? "›" : "‹";
+      localStorage.setItem("fototerapia-sidebar", collapsed ? "collapsed" : "open");
+    });
+    if (localStorage.getItem("fototerapia-sidebar") === "collapsed") {
+      appEl.classList.add("sidebar-collapsed");
+      collapseBtn.textContent = "›";
+      collapseBtn.title = "Mostrar panel";
+    }
+
+    // Protect images
+    document.addEventListener("contextmenu", (e) => {
+      if (e.target.tagName === "IMG") { e.preventDefault(); return false; }
+    });
+    document.addEventListener("dragstart", (e) => {
+      if (e.target.tagName === "IMG") e.preventDefault();
+    });
+
+    // Build mode play/design buttons
+    document.getElementById("btn-build-play").addEventListener("click", () => {
+      Board.startBuildPlay();
+    });
+    document.getElementById("btn-build-design").addEventListener("click", () => {
+      Board.returnToDesign();
     });
   </script>
 
