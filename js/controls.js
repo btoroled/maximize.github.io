@@ -15,6 +15,7 @@ const Controls = {
     this.initModal();
     this.updateDeckAccent();
     Board.bindSliderNav();
+    Board.bindDeckPalette();
   },
 
   /* ── TEMA CLARO / OSCURO ── */
@@ -65,7 +66,7 @@ const Controls = {
     btn.title = isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
   },
 
-  /* ── DECK SELECTOR ── */
+  /* ── DECK SELECTOR — dorsos grandes ── */
   buildDeckSelector() {
     const wrap = document.getElementById("deck-selector");
     wrap.innerHTML = "";
@@ -75,9 +76,9 @@ const Controls = {
       btn.dataset.deckId = deck.id;
       btn.innerHTML = `
         <span class="deck-back-preview">
-          <img src="${deck.back}" alt="${deck.name}" onerror="this.style.display='none'">
+          <img src="${deck.back}" alt="${deck.name}" onerror="this.parentElement.style.background='var(--bg2)'">
         </span>
-        <span>${deck.name}</span>
+        <span class="deck-label">${deck.name}</span>
       `;
       btn.addEventListener("click", () => {
         State.setDeck(deck.id);
@@ -102,6 +103,7 @@ const Controls = {
         State.setMode(btn.dataset.mode);
         btns.forEach(b => b.classList.toggle("active", b.dataset.mode === State.activeMode));
         Board.render();
+        if (btn.dataset.mode === "build") Board.bindDeckPalette();
       });
     });
   },
