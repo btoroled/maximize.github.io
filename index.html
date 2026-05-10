@@ -19,6 +19,7 @@
 
       <div class="sidebar-header">
         <h1><em>Foto</em>terapia</h1>
+        <button id="btn-theme" title="Cambiar tema">🌙</button>
       </div>
 
       <!-- Deck selector -->
@@ -40,7 +41,6 @@
       <div class="sidebar-section">
         <p class="section-label">Disposición</p>
         <div id="preset-selector">
-          <!-- preset-btn's inserted by JS -->
 
           <!-- Custom preset -->
           <details class="custom-preset-row">
@@ -64,14 +64,13 @@
               </div>
             </div>
           </details>
+
         </div>
       </div>
 
       <!-- Action buttons -->
       <div class="action-buttons">
-        <button id="btn-reset" class="action-btn" title="Resetear tablero">
-          ↺ Reset
-        </button>
+        <button id="btn-reset" class="action-btn" title="Resetear tablero">↺ Reset</button>
         <button id="btn-fullscreen" class="action-btn" title="Pantalla completa">
           <span class="fs-icon">⛶</span> Pantalla
         </button>
@@ -88,14 +87,35 @@
 
   </div>
 
-  <!-- ═══ MODAL: Card Selector ═══ -->
+  <!-- ═══ MODAL SLIDER: Modo Selección ═══ -->
   <div id="card-selector-modal" role="dialog" aria-modal="true" aria-label="Seleccionar carta">
     <div class="modal-panel">
+
       <div class="modal-header">
         <h2>Elegir carta</h2>
-        <button id="modal-close" aria-label="Cerrar">✕</button>
+        <div class="modal-header-right">
+          <span class="modal-counter">1 / 0</span>
+          <button id="modal-close" aria-label="Cerrar">✕</button>
+        </div>
       </div>
-      <div class="modal-cards-grid"></div>
+
+      <!-- Slider -->
+      <div class="slider-body">
+        <button class="slider-nav prev" aria-label="Anterior">‹</button>
+
+        <div class="slider-track-wrap">
+          <div class="slider-track"></div>
+        </div>
+
+        <button class="slider-nav next" aria-label="Siguiente">›</button>
+      </div>
+
+      <!-- Footer con dots y botón seleccionar -->
+      <div class="slider-footer">
+        <div class="slider-dots"></div>
+        <button class="slider-select-btn">Colocar carta</button>
+      </div>
+
     </div>
   </div>
 
@@ -122,10 +142,8 @@
 
   <script>
     // Mobile sidebar toggle
-    const sidebarToggle = document.getElementById("sidebar-toggle");
-    const sidebar = document.getElementById("sidebar");
-    sidebarToggle.addEventListener("click", () => {
-      sidebar.classList.toggle("open");
+    document.getElementById("sidebar-toggle").addEventListener("click", () => {
+      document.getElementById("sidebar").classList.toggle("open");
     });
   </script>
 

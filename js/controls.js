@@ -1,10 +1,11 @@
 /**
- * CONTROLS — Selectores de mazo, modo, preset, reset, fullscreen y tableros personalizados
- * Cubre: DECK-002, MODE-003, PRESET-002, CTRL-001, FULL-001, FULL-002, CUSTOM-001, CUSTOM-002
+ * CONTROLS — Selectores, fullscreen, dark mode, presets personalizados
+ * Tarea 4: modo claro/oscuro (sistema + toggle manual)
  */
 
 const Controls = {
   init() {
+    this.initTheme();
     this.buildDeckSelector();
     this.buildModeSelector();
     this.buildPresetSelector();
@@ -12,8 +13,56 @@ const Controls = {
     this.initFullscreen();
     this.initCustomPreset();
     this.initModal();
-    this.loadSavedPresets();
     this.updateDeckAccent();
+    Board.bindSliderNav();
+  },
+
+  /* ── TEMA CLARO / OSCURO ── */
+  initTheme() {
+    const btn = document.getElementById("btn-theme");
+
+    // Detectar preferencia guardada o del sistema
+    const saved = localStorage.getItem("fototerapia-theme");
+    if (saved) {
+      document.documentElement.setAttribute("data-theme", saved);
+    }
+
+    this.updateThemeIcon();
+
+    btn.addEventListener("click", () => {
+      const current = document.documentElement.getAttribute("data-theme");
+      const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+      let next;
+      if (!current) {
+        // Sin preferencia manual → activar el opuesto al sistema
+        next = systemDark ? "light" : "dark";
+      } else if (current === "dark") {
+        next = "light";
+      } else {
+        next = "dark";
+      }
+
+      document.documentElement.setAttribute("data-theme", next);
+      localStorage.setItem("fototerapia-theme", next);
+      this.updateThemeIcon();
+    });
+
+    // Escuchar cambios del sistema operativo
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+      if (!localStorage.getItem("fototerapia-theme")) {
+        this.updateThemeIcon();
+      }
+    });
+  },
+
+  updateThemeIcon() {
+    const btn = document.getElementById("btn-theme");
+    const theme = document.documentElement.getAttribute("data-theme");
+    const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const isDark = theme === "dark" || (!theme && systemDark);
+    btn.textContent = isDark ? "☀️" : "🌙";
+    btn.title = isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
   },
 
   /* ── DECK SELECTOR ── */
@@ -24,7 +73,6 @@ const Controls = {
       const btn = document.createElement("button");
       btn.className = `deck-btn ${deck.id === State.activeDeck.id ? "active" : ""}`;
       btn.dataset.deckId = deck.id;
-      btn.style.setProperty("--deck-color", deck.color);
       btn.innerHTML = `
         <span class="deck-back-preview">
           <img src="${deck.back}" alt="${deck.name}" onerror="this.style.display='none'">
@@ -61,13 +109,9 @@ const Controls = {
   /* ── PRESET SELECTOR ── */
   buildPresetSelector() {
     const wrap = document.getElementById("preset-selector");
-    // Clear only preset buttons (not the custom input row)
     wrap.querySelectorAll(".preset-btn").forEach(b => b.remove());
 
-    const allPresets = [
-      ...window.PRESETS,
-      ...this.getSavedPresets(),
-    ];
+    const allPresets = [...window.PRESETS, ...this.getSavedPresets()];
 
     allPresets.forEach(preset => {
       const btn = document.createElement("button");
@@ -92,7 +136,7 @@ const Controls = {
         const total = preset.rows * preset.cols;
         const deckSize = State.activeDeck.cards.length;
         if (total > deckSize) {
-          this.showToast(`⚠️ El mazo solo tiene ${deckSize} cartas. El tablero necesita ${total}.`);
+          this.showToast(`⚠️ El mazo solo tiene ${deckSize} cartas. Necesitas ${total}.`);
         }
         State.setPreset(preset);
         wrap.querySelectorAll(".preset-btn").forEach(b =>
@@ -101,16 +145,13 @@ const Controls = {
         Board.render();
       });
 
-      // Insert before custom row
-      const customRow = wrap.querySelector(".custom-preset-row");
-      wrap.insertBefore(btn, customRow);
+      wrap.insertBefore(btn, wrap.querySelector(".custom-preset-row"));
     });
   },
 
   /* ── RESET ── */
   initReset() {
-    const btn = document.getElementById("btn-reset");
-    btn.addEventListener("click", () => {
+    document.getElementById("btn-reset").addEventListener("click", () => {
       const dialog = document.getElementById("confirm-dialog");
       dialog.classList.add("is-open");
 
@@ -143,96 +184,63 @@ const Controls = {
       State.isFullscreen = isFs;
       document.body.classList.toggle("is-fullscreen", isFs);
       btn.title = isFs ? "Salir de pantalla completa" : "Pantalla completa";
-      btn.querySelector(".fs-icon").textContent = isFs ? "⛶" : "⛶";
     });
   },
 
   /* ── CUSTOM PRESET ── */
   initCustomPreset() {
-    const applyBtn = document.getElementById("custom-apply");
-    applyBtn.addEventListener("click", () => {
+    document.getElementById("custom-apply").addEventListener("click", () => {
       const rows = parseInt(document.getElementById("custom-rows").value, 10);
       const cols = parseInt(document.getElementById("custom-cols").value, 10);
-
       if (!rows || !cols || rows < 1 || cols < 1 || rows > 9 || cols > 9) {
         this.showToast("⚠️ Filas y columnas deben ser entre 1 y 9.");
         return;
       }
-
-      const preset = {
-        id: `custom-${rows}x${cols}-${Date.now()}`,
-        label: `${rows}×${cols}`,
-        rows,
-        cols,
-      };
-
       const total = rows * cols;
-      const deckSize = State.activeDeck.cards.length;
-      if (total > deckSize) {
-        this.showToast(`⚠️ El mazo solo tiene ${deckSize} cartas. Se necesitan ${total}.`);
+      if (total > State.activeDeck.cards.length) {
+        this.showToast(`⚠️ El mazo solo tiene ${State.activeDeck.cards.length} cartas.`);
       }
-
-      State.setPreset(preset);
+      State.setPreset({ id: `custom-${rows}x${cols}`, label: `${rows}×${cols}`, rows, cols });
       this.buildPresetSelector();
       Board.render();
     });
 
-    const saveBtn = document.getElementById("custom-save");
-    saveBtn.addEventListener("click", () => {
+    document.getElementById("custom-save").addEventListener("click", () => {
       const rows = parseInt(document.getElementById("custom-rows").value, 10);
       const cols = parseInt(document.getElementById("custom-cols").value, 10);
       const name = document.getElementById("custom-name").value.trim();
-
       if (!rows || !cols || rows < 1 || cols < 1 || rows > 9 || cols > 9) {
         this.showToast("⚠️ Ingresa valores válidos antes de guardar.");
         return;
       }
-
       const label = name || `${rows}×${cols}`;
-      const preset = {
-        id: `saved-${Date.now()}`,
-        label,
-        rows,
-        cols,
-        saved: true,
-      };
-
-      this.savePreset(preset);
+      this.savePreset({ id: `saved-${Date.now()}`, label, rows, cols, saved: true });
       this.buildPresetSelector();
-      this.showToast(`✅ Tablero "${label}" guardado.`);
+      this.showToast(`✅ "${label}" guardado.`);
     });
   },
 
-  /* ── MODAL CLOSE ── */
+  /* ── MODAL ── */
   initModal() {
-    document.getElementById("modal-close").addEventListener("click", () => {
-      Board.closeSelector();
-    });
+    document.getElementById("modal-close").addEventListener("click", () => Board.closeSelector());
     document.getElementById("card-selector-modal").addEventListener("click", (e) => {
       if (e.target === e.currentTarget) Board.closeSelector();
     });
   },
 
-  /* ── LOCALSTORAGE PRESETS ── */
+  /* ── LOCALSTORAGE ── */
   getSavedPresets() {
-    try {
-      return JSON.parse(localStorage.getItem("fototerapia-presets") || "[]");
-    } catch { return []; }
+    try { return JSON.parse(localStorage.getItem("fototerapia-presets") || "[]"); }
+    catch { return []; }
   },
-
   savePreset(preset) {
     const saved = this.getSavedPresets();
     saved.push(preset);
     localStorage.setItem("fototerapia-presets", JSON.stringify(saved));
   },
-
   deleteSavedPreset(id) {
     const saved = this.getSavedPresets().filter(p => p.id !== id);
     localStorage.setItem("fototerapia-presets", JSON.stringify(saved));
-  },
-
-  loadSavedPresets() {
-    // Already loaded via buildPresetSelector
   },
 
   /* ── TOAST ── */
@@ -240,7 +248,8 @@ const Controls = {
     const toast = document.getElementById("toast");
     toast.textContent = msg;
     toast.classList.add("show");
-    setTimeout(() => toast.classList.remove("show"), 3000);
+    clearTimeout(this._toastTimer);
+    this._toastTimer = setTimeout(() => toast.classList.remove("show"), 3000);
   },
 };
 
