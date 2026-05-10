@@ -13,7 +13,7 @@ const DECKS = [
     id: "alma",
     name: "Alma",
     back: "assets/backs/alma_00_f.jpg",
-    color: "#7C6A8E",
+    color: "#ba660c",
     cards: Array.from({ length: 120 }, (_, i) => {
       const num = String(i + 1).padStart(2, "0");
       return {
@@ -27,7 +27,7 @@ const DECKS = [
     id: "dreams",
     name: "Dreams",
     back: "assets/backs/dreams_0.png",
-    color: "#6A8E7C",
+    color: "#9690a6",
     cards: Array.from({ length: 101 }, (_, i) => {
       const num = String(i + 1).padStart(2, "0");
       return {
@@ -41,7 +41,7 @@ const DECKS = [
     id: "pixel",
     name: "Pixel",
     back: "assets/backs/pixel_0.jpg",
-    color: "#8E7C6A",
+    color: "#6567eb",
     cards: Array.from({ length: 113 }, (_, i) => ({
       id: `pixel-${i + 1}`,
       src: `assets/cards/pixel/fotos/pixel_${i + 1}.jpg`,
