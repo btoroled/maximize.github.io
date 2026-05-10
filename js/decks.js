@@ -26,7 +26,7 @@ const DECKS = [
   {
     id: "dreams",
     name: "Dreams",
-    back: "assets/backs/dreams_0.jpg",
+    back: "assets/backs/dreams_0.png",
     color: "#6A8E7C",
     cards: Array.from({ length: 101 }, (_, i) => {
       const num = String(i + 1).padStart(2, "0");
