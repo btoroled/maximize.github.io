@@ -1103,6 +1103,8 @@ img {
   box-shadow: var(--shadow);
 }
 
+
+
 @media (max-width: 768px) {
   #sidebar-toggle { display: flex; }
   #sidebar-collapse { display: none; }
